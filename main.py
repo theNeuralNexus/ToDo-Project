@@ -1,9 +1,10 @@
 import sys
+from typing import Any, Dict, List, Optional
 
 
 def main() -> None:
     """Main part of the program"""
-    tasks: list = []
+    tasks: List[Dict[str, Any]] = []
     task_id: int = 1
     print("Welcome to To-Do Application:")
 
@@ -26,11 +27,11 @@ def main() -> None:
         else:
             print("Invalid operation")
 
-        if input("\nDo you want to exit the program? ").lower() in ["y", "yes"]:
+        if input("\nDo you want to exit the program? ").lower() == "y":
             sys.exit("\nExiting program...")
 
 
-def add_tasks(tasks: list, task_id: int) -> int:
+def add_tasks(tasks: List[Dict[str, Any]], task_id: int) -> int:
     """
     Add tasks in the todo list
 
@@ -43,20 +44,20 @@ def add_tasks(tasks: list, task_id: int) -> int:
     """
     while True:
         print()
-        title: str = input("Title: ")
-        priority: str = input("Priority: ").lower()
+        title: str = input("Title: ").strip()
+        priority: str = input("Priority: ").strip().lower()
         if priority in ["low", "medium", "high"]:
             tasks.append({"id": task_id, "title": title, "priority": priority})
             task_id += 1
         else:
             print("\nInvalid priority")
 
-        if input("\nDo you want to add more tasks? ").lower() in ["n", "no"]:
+        if input("\nDo you want to add more tasks? ").lower() == "n":
             break
     return task_id
 
 
-def view_tasks(tasks: list) -> None:
+def view_tasks(tasks: List[Dict[str, Any]]) -> None:
     """
     List all of the tasks in the format: ID | Task | Priority
 
@@ -71,7 +72,7 @@ def view_tasks(tasks: list) -> None:
         print("\nThere is nothing in the database")
 
 
-def delete_tasks(tasks: list) -> list:
+def delete_tasks(tasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Delete the task from the todo list provided by the user
 
@@ -83,19 +84,21 @@ def delete_tasks(tasks: list) -> list:
     """
     while True:
         delete_task_id: int = get_positive_int("\nWhich task do you want to delete: ")
-        deleted_tasks: list = []
-        for task in tasks:
-            if task["id"] == delete_task_id:
-                print("\nDeleting task...")
-                deleted_tasks.append(tasks.pop(tasks.index(task)))
-                print("\nDeleted successfully...")
-                if input("\nDo you want to delete more tasks? ").lower() in ["n", "no"]:
-                    return deleted_tasks
+        deleted_tasks: List[Dict[str, Any]] = []
+        task = get_task(tasks, delete_task_id)
 
-        print("There is no such task in the database to delete")
+        if task:
+            print("\nDeleting task...")
+            deleted_tasks.append(tasks.pop(tasks.index(task)))
+            print("\nDeleted successfully...")
+        else:
+            print("There is no such task in the database to delete")
+
+        if input("\nDo you want to delete more tasks? ").lower() == "n":
+            return deleted_tasks
 
 
-def update_tasks(tasks: list) -> list:
+def update_tasks(tasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Update the tasks in the todo list provided by the user
 
@@ -107,24 +110,43 @@ def update_tasks(tasks: list) -> list:
     """
     while True:
         update_task_id: int = get_positive_int("\nWhich task do you want to update? ")
-        updated_tasks: list = []
-        for task in tasks:
-            if task["id"] == update_task_id:
-                task["title"] = input("\nTitle: ")
-                priority = input("Priority: ").lower()
-                if priority in ["high", "medium", "low"]:
-                    task["priority"] = priority
-                    print("\nUpdating task...")
-                    updated_tasks.append(task)
-                    print("\nUpdated successfully...")
+        updated_tasks: List[Dict[str, Any]] = []
+        task = get_task(tasks, update_task_id)
 
-                    if input("\nDo you want to update more tasks? ").lower() in [
-                        "n",
-                        "no",
-                    ]:
-                        return updated_tasks
+        if task:
+            print("\nUpdating Task...")
+            task["title"] = input("\nTitle: ")
+            priority = input("Priority: ").lower()
+            if priority in ["high", "medium", "low"]:
+                task["priority"] = priority
+                updated_tasks.append(task)
+                print("\nUpdated successfully...")
+        else:
+            print("\nThere is no such task in database")
 
-        print("\nThere is no such task in database")
+        if input("\nDo you want to update more tasks? ").lower() == "n":
+            return updated_tasks
+
+
+def get_task(tasks: List[Dict[str, Any]], task_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Get the task dict of specified task_id
+
+    Args:
+        tasks (list): List of all of the tasks
+        task_id (int): id of the task dict you want
+
+    Returns:
+        Dict: Specified task id dict
+    """
+    if len(tasks) < 1:
+        return None
+
+    for task in tasks:
+        if task["id"] == task_id:
+            return task
+
+    return None
 
 
 def get_positive_int(prompt: str) -> int:
